@@ -1,0 +1,108 @@
+/* wmpmixer - PulseAudio mixer as a Window Maker dockapp
+ * Copyright (C) 2021 Doug Torrance <dtorrance@piedmont.edu>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ */
+
+#include "pulse.h"
+
+#include <pulse/pulseaudio.h>
+#include <WINGs/WUtil.h>
+
+pa_mainloop *ml;
+
+void mainloop_iterate(void *data);
+void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
+		      int eol, void *userdata);
+void state_cb(pa_context *c, void *userdata);
+
+/* Pixmap icon_name_to_pixmap(const char *icon_name) { */
+/* 	const char *file; */
+/* 	GtkIconTheme *theme; */
+/* 	GtkIconInfo *icon_info; */
+/* 	RContext *context; */
+/* 	RImage *image; */
+/* 	Pixmap pixmap; */
+
+/* 	RColor bg = {40, 40, 40, 255}; */
+
+/* 	theme = gtk_icon_theme_get_default(); */
+/* 	/\* TODO - error handling *\/ */
+
+/* 	icon_info = gtk_icon_theme_lookup_icon( */
+/* 		theme, icon_name, 22, GTK_ICON_LOOKUP_GENERIC_FALLBACK); */
+/* 	file = gtk_icon_info_get_filename(icon_info); */
+
+/* 	context = RCreateContext(DADisplay, DefaultScreen(DADisplay), NULL); */
+/* 	image = RLoadImage(context, file, 1); */
+/* 	image = RScaleImage(image, 22, 22); */
+/* 	RCombineImageWithColor(image, &bg); */
+/* 	RConvertImage(context, image, &pixmap); */
+
+/* 	RReleaseImage(image); */
+/* 	RDestroyContext(context); */
+/* 	g_object_unref(icon_info); */
+
+/* 	return pixmap; */
+/* } */
+
+void setup_pulse(void)
+{
+	pa_context *ctx;
+	pa_mainloop_api *mlapi;
+
+	ml = pa_mainloop_new();
+	if (!ml)
+		werror("pa_mainloop_new() failed");
+	mlapi = pa_mainloop_get_api(ml);
+	ctx = pa_context_new(mlapi, PACKAGE_NAME);
+	if (!ctx)
+		werror("pa_context_new() failed");
+	pa_context_connect(ctx, NULL, 0, NULL);
+	pa_context_set_state_callback(ctx, state_cb, NULL);
+}
+
+void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
+		      int eol, void *userdata)
+{
+	const char *icon_name;
+
+	if (eol)
+		return;
+
+	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
+	wwarning("%s", icon_name);
+	/* pixmap = icon_name_to_pixmap(icon_name); */
+	/* XCopyArea(DADisplay, pixmap, main_dasp->pixmap, */
+	/* 	  DAGC, 0, 0, 22, 22, 6, 5); */
+	/* DASPSetPixmap(main_dasp); */
+}
+
+
+void state_cb(pa_context *ctx, void *userdata) {
+	pa_context_state_t state;
+
+        state = pa_context_get_state(ctx);
+	/* TODO - display this info on the dockapp in some way */
+
+	if (state == PA_CONTEXT_READY)
+		pa_context_get_sink_info_list(ctx, sink_info_cb, NULL);
+}
+
+void iterate_pulse_mainloop(void *data)
+{
+	pa_mainloop_iterate(ml, 0, NULL);
+}
