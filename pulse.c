@@ -18,46 +18,53 @@
  */
 
 #include "pulse.h"
+#include "wmpmixer.h"
 
+#include <gtk/gtk.h>
 #include <pulse/pulseaudio.h>
+#include <WINGs/WINGs.h>
 #include <WINGs/WUtil.h>
 
 pa_mainloop *ml;
 
+typedef struct {
+	const char *description;
+	WMPixmap *icon;
+	pa_cvolume volume;
+} PulseDevice;
+
+int current_device = 0;
+int num_devices = 0;
+PulseDevice pulse_devices[100];
+
+WMPixmap *icon_name_to_pixmap(const char *icon_name);
 void mainloop_iterate(void *data);
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 		      int eol, void *userdata);
 void state_cb(pa_context *c, void *userdata);
 
-/* Pixmap icon_name_to_pixmap(const char *icon_name) { */
-/* 	const char *file; */
-/* 	GtkIconTheme *theme; */
-/* 	GtkIconInfo *icon_info; */
-/* 	RContext *context; */
-/* 	RImage *image; */
-/* 	Pixmap pixmap; */
+WMPixmap *icon_name_to_pixmap(const char *icon_name) {
+	const char *file;
+	GtkIconTheme *theme;
+	GtkIconInfo *icon_info;
+	WMPixmap *pixmap;
+	WMScreen *screen;
 
-/* 	RColor bg = {40, 40, 40, 255}; */
+	RColor bg = {40, 40, 40, 255};
 
-/* 	theme = gtk_icon_theme_get_default(); */
-/* 	/\* TODO - error handling *\/ */
+	theme = gtk_icon_theme_get_default();
+	/* TODO - error handling */
+	icon_info = gtk_icon_theme_lookup_icon(
+		theme, icon_name, 22, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+	file = gtk_icon_info_get_filename(icon_info);
 
-/* 	icon_info = gtk_icon_theme_lookup_icon( */
-/* 		theme, icon_name, 22, GTK_ICON_LOOKUP_GENERIC_FALLBACK); */
-/* 	file = gtk_icon_info_get_filename(icon_info); */
+	screen = get_screen();
+	pixmap = WMCreateScaledBlendedPixmapFromFile(screen, file, &bg, 22, 22);
 
-/* 	context = RCreateContext(DADisplay, DefaultScreen(DADisplay), NULL); */
-/* 	image = RLoadImage(context, file, 1); */
-/* 	image = RScaleImage(image, 22, 22); */
-/* 	RCombineImageWithColor(image, &bg); */
-/* 	RConvertImage(context, image, &pixmap); */
+	g_object_unref(icon_info);
 
-/* 	RReleaseImage(image); */
-/* 	RDestroyContext(context); */
-/* 	g_object_unref(icon_info); */
-
-/* 	return pixmap; */
-/* } */
+	return pixmap;
+}
 
 void setup_pulse(void)
 {
@@ -80,15 +87,16 @@ void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 {
 	const char *icon_name;
 
-	if (eol)
+	if (eol) {
+		update_device();
 		return;
+	}
 
+	pulse_devices[num_devices].description = info->description;
 	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
-	wwarning("%s", icon_name);
-	/* pixmap = icon_name_to_pixmap(icon_name); */
-	/* XCopyArea(DADisplay, pixmap, main_dasp->pixmap, */
-	/* 	  DAGC, 0, 0, 22, 22, 6, 5); */
-	/* DASPSetPixmap(main_dasp); */
+	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
+	pulse_devices[num_devices].volume = info->volume;
+	num_devices++;
 }
 
 
@@ -105,4 +113,34 @@ void state_cb(pa_context *ctx, void *userdata) {
 void iterate_pulse_mainloop(void *data)
 {
 	pa_mainloop_iterate(ml, 0, NULL);
+}
+
+const char *get_current_device_description(void)
+{
+	return pulse_devices[current_device].description;
+}
+
+WMPixmap *get_current_device_icon(void)
+{
+	return pulse_devices[current_device].icon;
+}
+
+void increment_current_device(WMWidget *widget, void *data)
+{
+	current_device++;
+
+	if (current_device >= num_devices)
+		current_device = 0;
+
+	update_device();
+}
+
+void decrement_current_device(WMWidget *widget, void *data)
+{
+	current_device--;
+
+	if (current_device < 0)
+		current_device = num_devices - 1;
+
+	update_device();
 }

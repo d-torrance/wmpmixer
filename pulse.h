@@ -20,6 +20,12 @@
 #ifndef PULSE_H
 #define PULSE_H
 
+#include <WINGs/WINGs.h>
+
+const char *get_current_device_description(void);
+WMPixmap *get_current_device_icon(void);
+void increment_current_device(WMWidget *widget, void *data);
+void decrement_current_device(WMWidget *widget, void *data);
 void setup_pulse(void);
 void iterate_pulse_mainloop(void *data);
 

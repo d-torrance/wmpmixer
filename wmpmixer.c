@@ -24,6 +24,10 @@
 #include <X11/extensions/shape.h>
 
 #include "pulse.h"
+#include "wmpmixer.h"
+
+WMScreen *screen;
+WMLabel *icon_label;
 
 static char * left_xpm[] = {
 	"4 7 2 1",
@@ -81,7 +85,6 @@ void setup_window(WMWindow *window);
 int main(int argc, char **argv)
 {
 	Display *display;
-	WMScreen *screen;
 	WMWindow *window;
 
 	WMInitializeApplication(PACKAGE_NAME, &argc, argv);
@@ -107,7 +110,6 @@ int main(int argc, char **argv)
 void setup_window(WMWindow *window) {
 	Display *display;
 	Window xid;
-	WMScreen *screen;
 	XRectangle rect[3];
 	XWMHints *hints;
 	WMColor *bg;
@@ -161,8 +163,14 @@ void setup_window(WMWindow *window) {
 	WMSetFrameRelief(icon_frame, WRPushed);
 	WMResizeWidget(icon_frame, 26, 24);
 	WMMoveWidget(icon_frame, 4, 4);
-	WMSetWidgetBackgroundColor(icon_frame, bg);
 	WMRealizeWidget(icon_frame);
+
+	icon_label = WMCreateLabel(icon_frame);
+	WMResizeWidget(icon_label, 24, 22);
+	WMMoveWidget(icon_label, 1, 1);
+	WMSetWidgetBackgroundColor(icon_label, bg);
+	WMSetLabelImagePosition(icon_label, WIPImageOnly);
+	WMRealizeWidget(icon_label);
 
 	slider_frame = WMCreateFrame(window);
 	WMSetFrameRelief(slider_frame, WRPushed);
@@ -177,6 +185,7 @@ void setup_window(WMWindow *window) {
 	left_pix = WMCreatePixmapFromXPMData(screen, left_xpm);
 	WMSetButtonImage(left_button, left_pix);
 	WMSetButtonImagePosition(left_button, WIPImageOnly);
+	WMSetButtonAction(left_button, decrement_current_device, NULL);
 	WMRealizeWidget(left_button);
 
 	right_button = WMCreateButton(window, WBTMomentaryPush);
@@ -185,6 +194,7 @@ void setup_window(WMWindow *window) {
 	right_pix = WMCreatePixmapFromXPMData(screen, right_xpm);
 	WMSetButtonImage(right_button, right_pix);
 	WMSetButtonImagePosition(right_button, WIPImageOnly);
+	WMSetButtonAction(right_button, increment_current_device, NULL);
 	WMRealizeWidget(right_button);
 
 	record_button = WMCreateButton(window, WBTToggle);
@@ -205,4 +215,17 @@ void setup_window(WMWindow *window) {
 
 	WMMapWidget(window);
 	WMMapSubwidgets(window);
+	WMMapWidget(icon_label);
+}
+
+WMScreen *get_screen(void) {
+	return screen;
+}
+
+void update_device(void)
+{
+	WMSetBalloonTextForView(get_current_device_description(),
+				WMWidgetView(icon_label));
+	WMSetLabelImage(icon_label, get_current_device_icon());
+	WMRedisplayWidget(icon_label);
 }
