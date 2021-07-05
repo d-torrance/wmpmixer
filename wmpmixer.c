@@ -27,7 +27,7 @@
 #include "wmpmixer.h"
 
 WMScreen *screen;
-WMLabel *icon_label;
+WMLabel *icon_label, *slider_label;
 
 static char * left_xpm[] = {
 	"4 7 2 1",
@@ -179,6 +179,13 @@ void setup_window(WMWindow *window) {
 	WMSetWidgetBackgroundColor(slider_frame, bg);
 	WMRealizeWidget(slider_frame);
 
+	slider_label = WMCreateLabel(slider_frame);
+	WMResizeWidget(slider_label, 23, 53);
+	WMMoveWidget(slider_label, 1, 1);
+	WMSetWidgetBackgroundColor(slider_label, bg);
+	WMSetLabelImagePosition(slider_label, WIPImageOnly);
+	WMRealizeWidget(slider_label);
+
 	left_button = WMCreateButton(window, WBTMomentaryPush);
 	WMResizeWidget(left_button, 13, 13);
 	WMMoveWidget(left_button, 4, 33);
@@ -216,6 +223,7 @@ void setup_window(WMWindow *window) {
 	WMMapWidget(window);
 	WMMapSubwidgets(window);
 	WMMapWidget(icon_label);
+	WMMapWidget(slider_label);
 }
 
 WMScreen *get_screen(void) {
@@ -224,8 +232,29 @@ WMScreen *get_screen(void) {
 
 void update_device(void)
 {
+	int i;
+	RImage *image;
+	WMPixmap *slider_pix;
+
+	RColor bg = {40, 40, 40, 255};
+
 	WMSetBalloonTextForView(get_current_device_description(),
 				WMWidgetView(icon_label));
 	WMSetLabelImage(icon_label, get_current_device_icon());
 	WMRedisplayWidget(icon_label);
+
+	image = RCreateImage(23, 53, False);
+	RFillImage(image, &bg);
+
+	for (i = 0; i < 25; i++) {
+		/* based on XHandler::mixColor() from wmmixer */
+		RColor line_color = {
+			255 * i / (50 - i),
+			255 * (50 - 2 * i) / (50 - i), 0, 255};
+		RDrawLine(image, 1, 50 - 2 * i, 21, 50 - 2 * i, &line_color);
+	}
+
+	slider_pix = WMCreatePixmapFromRImage(screen, image, 127);
+	WMSetLabelImage(slider_label, slider_pix);
+	WMRedisplayWidget(slider_label);
 }
