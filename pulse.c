@@ -34,9 +34,10 @@ typedef struct {
 } PulseDevice;
 
 int current_device = 0;
-int num_devices = 0;
-PulseDevice pulse_devices[100];
+WMArray *pulse_devices;
 
+PulseDevice *create_device(const char *description, const char *icon_name,
+			   pa_cvolume volume);
 WMPixmap *icon_name_to_pixmap(const char *icon_name);
 void mainloop_iterate(void *data);
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
@@ -81,6 +82,8 @@ void setup_pulse(void)
 	pa_context *ctx;
 	pa_mainloop_api *mlapi;
 
+	pulse_devices = WMCreateArray(0);
+
 	ml = pa_mainloop_new();
 	if (!ml) {
 		werror("pa_mainloop_new() failed");
@@ -96,75 +99,93 @@ void setup_pulse(void)
 	pa_context_set_state_callback(ctx, state_cb, NULL);
 }
 
+PulseDevice *create_device(const char *description, const char *icon_name,
+			   pa_cvolume volume)
+{
+	PulseDevice *device;
+
+	device = wmalloc(sizeof(PulseDevice));
+	device->description = strdup(description);
+	device->icon = icon_name_to_pixmap(icon_name);
+	device->volume = volume;
+
+	return device;
+}
+
+
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 		      int eol, void *userdata)
 {
-	const char *icon_name;
-
 	if (eol) {
 		pa_context_get_source_info_list(ctx, source_info_cb, NULL);
 		return;
-	}
+	} else {
+		const char *icon_name;
+		PulseDevice *device;
 
-	pulse_devices[num_devices].description = wstrdup(info->description);
-	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
-	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
-	pulse_devices[num_devices].volume = info->volume;
-	num_devices++;
+		icon_name = pa_proplist_gets(info->proplist,
+					     "device.icon_name");
+		device = create_device(info->description, icon_name,
+				       info->volume);
+		WMAddToArray(pulse_devices, device);
+	}
 }
 
 void source_info_cb(pa_context *ctx, const pa_source_info *info,
 		    int eol, void *userdata)
 {
-	const char *icon_name;
 	if (eol) {
 		pa_context_get_sink_input_info_list(ctx, sink_input_info_cb,
 						    NULL);
 		return;
-	}
+	} else {
+		const char *icon_name;
+		PulseDevice *device;
 
-	pulse_devices[num_devices].description = wstrdup(info->description);
-	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
-	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
-	pulse_devices[num_devices].volume = info->volume;
-	num_devices++;
+		icon_name = pa_proplist_gets(info->proplist,
+					     "device.icon_name");
+		device = create_device(info->description, icon_name,
+				       info->volume);
+		WMAddToArray(pulse_devices, device);
+	}
 }
 
 void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 			int eol, void *userdata)
 {
-	const char *name, *icon_name;
 	if (eol) {
 		pa_context_get_source_output_info_list(ctx,
 						       source_output_info_cb,
 						       NULL);
-		update_device();
 		return;
-	}
+	} else {
+		const char *name, *icon_name;
+		PulseDevice *device;
 
-	name = pa_proplist_gets(info->proplist, "application.name");
-	pulse_devices[num_devices].description = wstrdup(name);
-	icon_name = pa_proplist_gets(info->proplist, "application.icon_name");
-	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
-	pulse_devices[num_devices].volume = info->volume;
-	num_devices++;
+		name = pa_proplist_gets(info->proplist, "application.name");
+		icon_name = pa_proplist_gets(info->proplist,
+					     "application.icon_name");
+		device = create_device(name, icon_name, info->volume);
+		WMAddToArray(pulse_devices, device);
+	}
 }
 
 void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 			int eol, void *userdata)
 {
-	const char *name, *icon_name;
 	if (eol) {
 		update_device();
 		return;
-	}
+	} else {
+		const char *name, *icon_name;
+		PulseDevice *device;
 
-	name = pa_proplist_gets(info->proplist, "application.name");
-	pulse_devices[num_devices].description = wstrdup(name);
-	icon_name = pa_proplist_gets(info->proplist, "application.icon_name");
-	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
-	pulse_devices[num_devices].volume = info->volume;
-	num_devices++;
+		name = pa_proplist_gets(info->proplist, "application.name");
+		icon_name = pa_proplist_gets(info->proplist,
+					     "application.icon_name");
+		device = create_device(name, icon_name, info->volume);
+		WMAddToArray(pulse_devices, device);
+	}
 }
 
 void state_cb(pa_context *ctx, void *userdata) {
@@ -184,22 +205,30 @@ void iterate_pulse_mainloop(void *data)
 
 const char *get_current_device_description(void)
 {
-	return pulse_devices[current_device].description;
+	PulseDevice *device;
+
+	device = WMGetFromArray(pulse_devices, current_device);
+	return device->description;
 }
 
 WMPixmap *get_current_device_icon(void)
 {
-	return pulse_devices[current_device].icon;
+	PulseDevice *device;
+
+	device = WMGetFromArray(pulse_devices, current_device);
+	return device->icon;
 }
 
 /* returns an int between -1 (= muted) and 24 (= 150% of normal) */
 int get_current_device_volume(void)
 {
+	PulseDevice *device;
 	pa_cvolume volume;
 	pa_volume_t average;
 	int result;
 
-	volume = pulse_devices[current_device].volume;
+	device = WMGetFromArray(pulse_devices, current_device);
+	volume = device->volume;
 	average = pa_cvolume_avg(&volume);
 
 	result = (25 / (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED)) *
@@ -216,7 +245,7 @@ void increment_current_device(WMWidget *widget, void *data)
 {
 	current_device++;
 
-	if (current_device >= num_devices)
+	if (current_device >= WMGetArrayItemCount(pulse_devices))
 		current_device = 0;
 
 	update_device();
@@ -227,7 +256,7 @@ void decrement_current_device(WMWidget *widget, void *data)
 	current_device--;
 
 	if (current_device < 0)
-		current_device = num_devices - 1;
+		current_device = WMGetArrayItemCount(pulse_devices) - 1;
 
 	update_device();
 }
