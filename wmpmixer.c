@@ -253,9 +253,12 @@ void update_device(void)
 
 	for (i = 0; i <= get_current_device_volume(); i++) {
 		/* based on XHandler::mixColor() from wmmixer */
-		RColor line_color = {
-			255 * i / (50 - i),
-			255 * (50 - 2 * i) / (50 - i), 0, 255};
+		RColor line_color;
+
+		line_color.red = 255 * i / (50 - i);
+		line_color.green = 255 * (50 - 2 * i) / (50 - i);
+		line_color.blue = 0;
+		line_color.alpha = 255;
 		RDrawLine(image, 1, 50 - 2 * i, 20, 50 - 2 * i, &line_color);
 	}
 
