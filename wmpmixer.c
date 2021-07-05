@@ -268,9 +268,9 @@ void update_device(void)
 
 void slider_event(XEvent *event, void *data)
 {
-	if ((event->type == ButtonPress || event->type == ButtonRelease)
-	    && event->xbutton.button == 1 ||
-	    event->type == MotionNotify && event->xmotion.state & Button1Mask)
+	if (((event->type == ButtonPress || event->type == ButtonRelease)
+	     && event->xbutton.button == 1) ||
+	    (event->type == MotionNotify && event->xmotion.state & Button1Mask))
 		wmessage("y = %d\n", event->xbutton.y);
 	else if (event->type == ButtonPress && event->xbutton.button == 4)
 		wmessage("up!");
