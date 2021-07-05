@@ -27,17 +27,28 @@
 
 pa_mainloop *ml;
 
+typedef enum {
+	PULSE_SINK,
+	PULSE_SOURCE,
+	PULSE_SINK_INPUT,
+	PULSE_SOURCE_OUTPUT
+} pulse_type;
+
 typedef struct {
+	pulse_type type;
+	uint32_t index;
 	const char *description;
 	WMPixmap *icon;
 	pa_cvolume volume;
+	Bool muted;
 } PulseDevice;
 
 int current_device = 0;
 WMArray *pulse_devices;
 
-PulseDevice *create_device(const char *description, const char *icon_name,
-			   pa_cvolume volume);
+PulseDevice *create_device(pulse_type type, uint32_t index,
+			   const char *description, const char *icon_name,
+			   pa_cvolume volume, Bool muted);
 WMPixmap *icon_name_to_pixmap(const char *icon_name);
 void mainloop_iterate(void *data);
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
@@ -99,15 +110,19 @@ void setup_pulse(void)
 	pa_context_set_state_callback(ctx, state_cb, NULL);
 }
 
-PulseDevice *create_device(const char *description, const char *icon_name,
-			   pa_cvolume volume)
+PulseDevice *create_device(pulse_type type, uint32_t index,
+			   const char *description, const char *icon_name,
+			   pa_cvolume volume, Bool muted)
 {
 	PulseDevice *device;
 
 	device = wmalloc(sizeof(PulseDevice));
+	device->type = type;
+	device->index = index;
 	device->description = strdup(description);
 	device->icon = icon_name_to_pixmap(icon_name);
 	device->volume = volume;
+	device->muted = muted;
 
 	return device;
 }
@@ -125,8 +140,9 @@ void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 
 		icon_name = pa_proplist_gets(info->proplist,
 					     "device.icon_name");
-		device = create_device(info->description, icon_name,
-				       info->volume);
+		device = create_device(PULSE_SINK, info->index,
+				       info->description, icon_name,
+				       info->volume, info->mute);
 		WMAddToArray(pulse_devices, device);
 	}
 }
@@ -144,8 +160,9 @@ void source_info_cb(pa_context *ctx, const pa_source_info *info,
 
 		icon_name = pa_proplist_gets(info->proplist,
 					     "device.icon_name");
-		device = create_device(info->description, icon_name,
-				       info->volume);
+		device = create_device(PULSE_SOURCE, info->index,
+				       info->description, icon_name,
+				       info->volume, info->mute);
 		WMAddToArray(pulse_devices, device);
 	}
 }
@@ -165,7 +182,9 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 		name = pa_proplist_gets(info->proplist, "application.name");
 		icon_name = pa_proplist_gets(info->proplist,
 					     "application.icon_name");
-		device = create_device(name, icon_name, info->volume);
+		device = create_device(PULSE_SINK_INPUT, info->index,
+				       name, icon_name, info->volume,
+				       info->mute);
 		WMAddToArray(pulse_devices, device);
 	}
 }
@@ -183,7 +202,9 @@ void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 		name = pa_proplist_gets(info->proplist, "application.name");
 		icon_name = pa_proplist_gets(info->proplist,
 					     "application.icon_name");
-		device = create_device(name, icon_name, info->volume);
+		device = create_device(PULSE_SOURCE_OUTPUT, info->index,
+				       name, icon_name, info->volume,
+				       info->mute);
 		WMAddToArray(pulse_devices, device);
 	}
 }
