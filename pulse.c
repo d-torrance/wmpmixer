@@ -20,10 +20,21 @@
 #include "pulse.h"
 #include "wmpmixer.h"
 
+#include <glib-object.h>
 #include <gtk/gtk.h>
-#include <pulse/pulseaudio.h>
+#include <pulse/context.h>
+#include <pulse/def.h>
+#include <pulse/introspect.h>
+#include <pulse/mainloop-api.h>
+#include <pulse/mainloop.h>
+#include <pulse/proplist.h>
+#include <pulse/volume.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <WINGs/WINGs.h>
 #include <WINGs/WUtil.h>
+#include <wraster.h>
+#include <X11/Xlib.h>
 
 pa_mainloop *ml;
 

@@ -18,10 +18,15 @@
  */
 
 #include <gtk/gtk.h>
-#include <stdio.h>
-#include <wraster.h>
+#include <stdlib.h>
 #include <WINGs/WINGs.h>
+#include <WINGs/WUtil.h>
+#include <wraster.h>
 #include <X11/extensions/shape.h>
+#include <X11/extensions/shapeconst.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 #include "pulse.h"
 #include "wmpmixer.h"
