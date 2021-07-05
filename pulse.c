@@ -50,7 +50,7 @@ typedef struct {
 	uint32_t index;
 	const char *description;
 	WMPixmap *icon;
-	pa_cvolume volume;
+	int volume;
 	Bool muted;
 } PulseDevice;
 
@@ -71,6 +71,7 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 			int eol, void *userdata);
 void state_cb(pa_context *c, void *userdata);
+int volume_to_int(pa_cvolume volume);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -132,7 +133,7 @@ PulseDevice *create_device(pulse_type type, uint32_t index,
 	device->index = index;
 	device->description = wstrdup(description);
 	device->icon = icon_name_to_pixmap(icon_name);
-	device->volume = volume;
+	device->volume = volume_to_int(volume);
 	device->muted = muted;
 
 	return device;
@@ -264,26 +265,30 @@ WMPixmap *get_current_device_icon(void)
 	return device->icon;
 }
 
-/* returns an int between -1 (= muted) and 24 (= 150% of normal) */
+/* returns an int between 0 (= muted) and 25 (= 150% of normal) */
+int volume_to_int(pa_cvolume volume)
+{
+	int result;
+	pa_volume_t average;
+
+	average = pa_cvolume_avg(&volume);
+	result = (25 / (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED)) *
+		(average - PA_VOLUME_MUTED);
+
+	if (result < 0)
+		return 0;
+	else if (result > 25)
+		return 25;
+	else
+		return result;
+}
+
 int get_current_device_volume(void)
 {
 	PulseDevice *device;
-	pa_cvolume volume;
-	pa_volume_t average;
-	int result;
 
 	device = WMGetFromArray(pulse_devices, current_device);
-	volume = device->volume;
-	average = pa_cvolume_avg(&volume);
-
-	result = (25 / (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED)) *
-		(average - PA_VOLUME_MUTED) - 1;
-	if (result < -1)
-		return -1;
-	else if (result > 24)
-		return 24;
-	else
-		return result;
+	return device->volume;
 }
 
 void increment_current_device(WMWidget *widget, void *data)
