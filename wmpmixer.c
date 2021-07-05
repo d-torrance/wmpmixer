@@ -106,6 +106,8 @@ int main(int argc, char **argv)
 
 	WMAddPersistentTimerHandler(100, iterate_pulse_mainloop, NULL);
 	WMScreenMainLoop(screen);
+
+	return 0;
 }
 
 void setup_window(WMWindow *window) {
