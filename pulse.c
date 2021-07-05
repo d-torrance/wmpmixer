@@ -131,6 +131,8 @@ PulseDevice *create_device(pulse_type type, uint32_t index,
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 		      int eol, void *userdata)
 {
+	(void)userdata;
+
 	if (eol) {
 		pa_context_get_source_info_list(ctx, source_info_cb, NULL);
 		return;
@@ -150,6 +152,8 @@ void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 void source_info_cb(pa_context *ctx, const pa_source_info *info,
 		    int eol, void *userdata)
 {
+	(void)userdata;
+
 	if (eol) {
 		pa_context_get_sink_input_info_list(ctx, sink_input_info_cb,
 						    NULL);
@@ -170,6 +174,8 @@ void source_info_cb(pa_context *ctx, const pa_source_info *info,
 void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 			int eol, void *userdata)
 {
+	(void)userdata;
+
 	if (eol) {
 		pa_context_get_source_output_info_list(ctx,
 						       source_output_info_cb,
@@ -192,6 +198,9 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 			int eol, void *userdata)
 {
+	(void)ctx;
+	(void)userdata;
+
 	if (eol) {
 		update_device();
 		return;
@@ -212,6 +221,8 @@ void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 void state_cb(pa_context *ctx, void *userdata) {
 	pa_context_state_t state;
 
+	(void)userdata;
+
         state = pa_context_get_state(ctx);
 	/* TODO - display this info on the dockapp in some way */
 
@@ -221,6 +232,8 @@ void state_cb(pa_context *ctx, void *userdata) {
 
 void iterate_pulse_mainloop(void *data)
 {
+	(void)data;
+
 	pa_mainloop_iterate(ml, 0, NULL);
 }
 
@@ -264,6 +277,9 @@ int get_current_device_volume(void)
 
 void increment_current_device(WMWidget *widget, void *data)
 {
+	(void)widget;
+	(void)data;
+
 	current_device++;
 
 	if (current_device >= WMGetArrayItemCount(pulse_devices))
@@ -274,6 +290,9 @@ void increment_current_device(WMWidget *widget, void *data)
 
 void decrement_current_device(WMWidget *widget, void *data)
 {
+	(void)widget;
+	(void)data;
+
 	current_device--;
 
 	if (current_device < 0)

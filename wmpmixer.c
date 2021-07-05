@@ -273,6 +273,8 @@ void update_device(void)
 
 void slider_event(XEvent *event, void *data)
 {
+	(void)data;
+
 	if (((event->type == ButtonPress || event->type == ButtonRelease)
 	     && event->xbutton.button == 1) ||
 	    (event->type == MotionNotify && event->xmotion.state & Button1Mask))
