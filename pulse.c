@@ -41,6 +41,8 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name);
 void mainloop_iterate(void *data);
 void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 		      int eol, void *userdata);
+void source_info_cb(pa_context *ctx, const pa_source_info *info,
+		    int eol, void *userdata);
 void state_cb(pa_context *c, void *userdata);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
@@ -91,6 +93,22 @@ void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 {
 	const char *icon_name;
 
+	if (eol) {
+		pa_context_get_source_info_list(ctx, source_info_cb, NULL);
+		return;
+	}
+
+	pulse_devices[num_devices].description = wstrdup(info->description);
+	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
+	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
+	pulse_devices[num_devices].volume = info->volume;
+	num_devices++;
+}
+
+void source_info_cb(pa_context *ctx, const pa_source_info *info,
+		    int eol, void *userdata)
+{
+	const char *icon_name;
 	if (eol) {
 		update_device();
 		return;
