@@ -257,4 +257,6 @@ void update_device(void)
 	slider_pix = WMCreatePixmapFromRImage(screen, image, 127);
 	WMSetLabelImage(slider_label, slider_pix);
 	WMRedisplayWidget(slider_label);
+
+	RReleaseImage(image);
 }
