@@ -45,6 +45,8 @@ void source_info_cb(pa_context *ctx, const pa_source_info *info,
 		    int eol, void *userdata);
 void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 			int eol, void *userdata);
+void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
+			int eol, void *userdata);
 void state_cb(pa_context *c, void *userdata);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
@@ -133,6 +135,9 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 {
 	const char *name, *icon_name;
 	if (eol) {
+		pa_context_get_source_output_info_list(ctx,
+						       source_output_info_cb,
+						       NULL);
 		update_device();
 		return;
 	}
@@ -145,6 +150,22 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 	num_devices++;
 }
 
+void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
+			int eol, void *userdata)
+{
+	const char *name, *icon_name;
+	if (eol) {
+		update_device();
+		return;
+	}
+
+	name = pa_proplist_gets(info->proplist, "application.name");
+	pulse_devices[num_devices].description = wstrdup(name);
+	icon_name = pa_proplist_gets(info->proplist, "application.icon_name");
+	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
+	pulse_devices[num_devices].volume = info->volume;
+	num_devices++;
+}
 
 void state_cb(pa_context *ctx, void *userdata) {
 	pa_context_state_t state;
