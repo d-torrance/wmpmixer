@@ -246,7 +246,7 @@ void update_device(void)
 	image = RCreateImage(23, 53, False);
 	RFillImage(image, &bg);
 
-	for (i = 0; i < 25; i++) {
+	for (i = 0; i <= get_current_device_volume(); i++) {
 		/* based on XHandler::mixColor() from wmmixer */
 		RColor line_color = {
 			255 * i / (50 - i),

@@ -125,6 +125,26 @@ WMPixmap *get_current_device_icon(void)
 	return pulse_devices[current_device].icon;
 }
 
+/* returns an int between -1 (= muted) and 24 (= 150% of normal) */
+int get_current_device_volume(void)
+{
+	pa_cvolume volume;
+	pa_volume_t average;
+	int result;
+
+	volume = pulse_devices[current_device].volume;
+	average = pa_cvolume_avg(&volume);
+
+	result = (25 / (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED)) *
+		(average - PA_VOLUME_MUTED) - 1;
+	if (result < -1)
+		return -1;
+	else if (result > 24)
+		return 24;
+	else
+		return result;
+}
+
 void increment_current_device(WMWidget *widget, void *data)
 {
 	current_device++;
