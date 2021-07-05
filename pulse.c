@@ -92,7 +92,7 @@ void sink_info_cb(pa_context *ctx, const pa_sink_info *info,
 		return;
 	}
 
-	pulse_devices[num_devices].description = info->description;
+	pulse_devices[num_devices].description = wstrdup(info->description);
 	icon_name = pa_proplist_gets(info->proplist, "device.icon_name");
 	pulse_devices[num_devices].icon = icon_name_to_pixmap(icon_name);
 	pulse_devices[num_devices].volume = info->volume;
