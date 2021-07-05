@@ -80,6 +80,7 @@ static char * mute_xpm[] = {
 	". ....++ .",
 	" ........ "};
 
+void slider_event(XEvent *event, void *data);
 void setup_window(WMWindow *window);
 
 int main(int argc, char **argv)
@@ -184,6 +185,10 @@ void setup_window(WMWindow *window) {
 	WMMoveWidget(slider_label, 1, 1);
 	WMSetWidgetBackgroundColor(slider_label, bg);
 	WMSetLabelImagePosition(slider_label, WIPImageOnly);
+	WMCreateEventHandler(
+		WMWidgetView(slider_label),
+		ButtonPressMask | ButtonReleaseMask | ButtonMotionMask,
+		slider_event, NULL);
 	WMRealizeWidget(slider_label);
 
 	left_button = WMCreateButton(window, WBTMomentaryPush);
@@ -259,4 +264,16 @@ void update_device(void)
 	WMRedisplayWidget(slider_label);
 
 	RReleaseImage(image);
+}
+
+void slider_event(XEvent *event, void *data)
+{
+	if ((event->type == ButtonPress || event->type == ButtonRelease)
+	    && event->xbutton.button == 1 ||
+	    event->type == MotionNotify && event->xmotion.state & Button1Mask)
+		wmessage("y = %d\n", event->xbutton.y);
+	else if (event->type == ButtonPress && event->xbutton.button == 4)
+		wmessage("up!");
+	else if (event->type == ButtonPress && event->xbutton.button == 5)
+		wmessage("down!");
 }
