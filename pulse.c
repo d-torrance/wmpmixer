@@ -119,7 +119,7 @@ PulseDevice *create_device(pulse_type type, uint32_t index,
 	device = wmalloc(sizeof(PulseDevice));
 	device->type = type;
 	device->index = index;
-	device->description = strdup(description);
+	device->description = wstrdup(description);
 	device->icon = icon_name_to_pixmap(icon_name);
 	device->volume = volume;
 	device->muted = muted;
