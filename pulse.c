@@ -72,12 +72,16 @@ void setup_pulse(void)
 	pa_mainloop_api *mlapi;
 
 	ml = pa_mainloop_new();
-	if (!ml)
+	if (!ml) {
 		werror("pa_mainloop_new() failed");
+		exit(EXIT_FAILURE);
+	}
 	mlapi = pa_mainloop_get_api(ml);
 	ctx = pa_context_new(mlapi, PACKAGE_NAME);
-	if (!ctx)
+	if (!ctx) {
 		werror("pa_context_new() failed");
+		exit(EXIT_FAILURE);
+	}
 	pa_context_connect(ctx, NULL, 0, NULL);
 	pa_context_set_state_callback(ctx, state_cb, NULL);
 }
