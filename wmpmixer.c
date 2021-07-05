@@ -251,7 +251,7 @@ void update_device(void)
 		RColor line_color = {
 			255 * i / (50 - i),
 			255 * (50 - 2 * i) / (50 - i), 0, 255};
-		RDrawLine(image, 1, 50 - 2 * i, 21, 50 - 2 * i, &line_color);
+		RDrawLine(image, 1, 50 - 2 * i, 20, 50 - 2 * i, &line_color);
 	}
 
 	slider_pix = WMCreatePixmapFromRImage(screen, image, 127);
