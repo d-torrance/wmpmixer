@@ -54,13 +54,17 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 
 	RColor bg = {40, 40, 40, 255};
 
+	screen = get_screen();
+
+	if (!icon_name)
+		return WMCreatePixmap(screen, 22, 22, 0, False);
+
 	theme = gtk_icon_theme_get_default();
 	/* TODO - error handling */
 	icon_info = gtk_icon_theme_lookup_icon(
 		theme, icon_name, 22, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
 	file = gtk_icon_info_get_filename(icon_info);
 
-	screen = get_screen();
 	pixmap = WMCreateScaledBlendedPixmapFromFile(screen, file, &bg, 22, 22);
 
 	g_object_unref(icon_info);
