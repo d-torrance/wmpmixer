@@ -31,6 +31,16 @@
 #include "pulse.h"
 #include "wmpmixer.h"
 
+#define MARGIN 4
+#define PADDING 5
+#define DOCKAPP_MEASURE 64
+#define ICON_MEASURE 22
+#define BUTTON_Y MARGIN + ICON_MEASURE + 2 + PADDING
+#define BUTTON_MEASURE 13
+#define SLIDER_WIDTH 25
+#define SLIDER_HEIGHT ICON_MEASURE + 2 + PADDING + 2 * BUTTON_MEASURE
+#define SLIDER_X MARGIN + 2 * BUTTON_MEASURE + PADDING
+
 WMScreen *screen;
 WMLabel *icon_label, *slider_label;
 
@@ -126,7 +136,7 @@ void setup_window(WMWindow *window) {
 	WMPixmap *left_pix, *right_pix, *record_pix, *mute_pix;
 
 	WMRealizeWidget(window);
-	WMResizeWidget(window, 64, 64);
+	WMResizeWidget(window, DOCKAPP_MEASURE, DOCKAPP_MEASURE);
 
 	xid = WMWidgetXID(window);
 	screen = WMWidgetScreen(window);
@@ -145,22 +155,22 @@ void setup_window(WMWindow *window) {
 	XFree(hints);
 
 	/* icons */
-	rect[0].x = 4;
-	rect[0].y = 4;
-	rect[0].width = 26;
-	rect[0].height = 24;
+	rect[0].x = MARGIN;
+	rect[0].y = MARGIN;
+	rect[0].width = 2 * BUTTON_MEASURE;
+	rect[0].height = ICON_MEASURE + 2;
 
 	/* buttons */
-	rect[1].x = 4;
-	rect[1].y = 33;
-	rect[1].width = 26;
-	rect[1].height = 26;
+	rect[1].x = MARGIN;
+	rect[1].y = BUTTON_Y;
+	rect[1].width = 2 * BUTTON_MEASURE;
+	rect[1].height = 2 * BUTTON_MEASURE;
 
 	/* volume slider */
-	rect[2].x = 35;
-	rect[2].y = 4;
-	rect[2].width = 25;
-	rect[2].height = 55;
+	rect[2].x = SLIDER_X;
+	rect[2].y = MARGIN;
+	rect[2].width = SLIDER_WIDTH;
+	rect[2].height = SLIDER_HEIGHT;
 
 	XShapeCombineRectangles(display, xid, ShapeBounding, 0, 0, rect, 3,
 				ShapeSet, Unsorted);
@@ -169,12 +179,12 @@ void setup_window(WMWindow *window) {
 
 	icon_frame = WMCreateFrame(window);
 	WMSetFrameRelief(icon_frame, WRPushed);
-	WMResizeWidget(icon_frame, 26, 24);
-	WMMoveWidget(icon_frame, 4, 4);
+	WMResizeWidget(icon_frame, 2 * BUTTON_MEASURE, ICON_MEASURE + 2);
+	WMMoveWidget(icon_frame, MARGIN, MARGIN);
 	WMRealizeWidget(icon_frame);
 
 	icon_label = WMCreateLabel(icon_frame);
-	WMResizeWidget(icon_label, 24, 22);
+	WMResizeWidget(icon_label, ICON_MEASURE + 2, ICON_MEASURE);
 	WMMoveWidget(icon_label, 1, 1);
 	WMSetWidgetBackgroundColor(icon_label, bg);
 	WMSetLabelImagePosition(icon_label, WIPImageOnly);
@@ -182,13 +192,13 @@ void setup_window(WMWindow *window) {
 
 	slider_frame = WMCreateFrame(window);
 	WMSetFrameRelief(slider_frame, WRPushed);
-	WMResizeWidget(slider_frame, 25, 55);
-	WMMoveWidget(slider_frame, 35, 4);
+	WMResizeWidget(slider_frame, SLIDER_WIDTH, SLIDER_HEIGHT);
+	WMMoveWidget(slider_frame, SLIDER_X, MARGIN);
 	WMSetWidgetBackgroundColor(slider_frame, bg);
 	WMRealizeWidget(slider_frame);
 
 	slider_label = WMCreateLabel(slider_frame);
-	WMResizeWidget(slider_label, 23, 53);
+	WMResizeWidget(slider_label, SLIDER_WIDTH - 2, SLIDER_HEIGHT - 2);
 	WMMoveWidget(slider_label, 1, 1);
 	WMSetWidgetBackgroundColor(slider_label, bg);
 	WMSetLabelImagePosition(slider_label, WIPImageOnly);
@@ -199,8 +209,8 @@ void setup_window(WMWindow *window) {
 	WMRealizeWidget(slider_label);
 
 	left_button = WMCreateButton(window, WBTMomentaryPush);
-	WMResizeWidget(left_button, 13, 13);
-	WMMoveWidget(left_button, 4, 33);
+	WMResizeWidget(left_button, BUTTON_MEASURE, BUTTON_MEASURE);
+	WMMoveWidget(left_button, MARGIN, BUTTON_Y);
 	left_pix = WMCreatePixmapFromXPMData(screen, left_xpm);
 	WMSetButtonImage(left_button, left_pix);
 	WMSetButtonImagePosition(left_button, WIPImageOnly);
@@ -208,8 +218,8 @@ void setup_window(WMWindow *window) {
 	WMRealizeWidget(left_button);
 
 	right_button = WMCreateButton(window, WBTMomentaryPush);
-	WMResizeWidget(right_button, 13, 13);
-	WMMoveWidget(right_button, 17, 33);
+	WMResizeWidget(right_button, BUTTON_MEASURE, BUTTON_MEASURE);
+	WMMoveWidget(right_button, MARGIN + BUTTON_MEASURE, BUTTON_Y);
 	right_pix = WMCreatePixmapFromXPMData(screen, right_xpm);
 	WMSetButtonImage(right_button, right_pix);
 	WMSetButtonImagePosition(right_button, WIPImageOnly);
@@ -217,16 +227,17 @@ void setup_window(WMWindow *window) {
 	WMRealizeWidget(right_button);
 
 	record_button = WMCreateButton(window, WBTToggle);
-	WMResizeWidget(record_button, 13, 13);
-	WMMoveWidget(record_button, 4, 46);
+	WMResizeWidget(record_button, BUTTON_MEASURE, BUTTON_MEASURE);
+	WMMoveWidget(record_button, MARGIN, BUTTON_Y + BUTTON_MEASURE);
 	record_pix = WMCreatePixmapFromXPMData(screen, record_xpm);
 	WMSetButtonImage(record_button, record_pix);
 	WMSetButtonImagePosition(record_button, WIPImageOnly);
 	WMRealizeWidget(record_button);
 
 	mute_button = WMCreateButton(window, WBTToggle);
-	WMResizeWidget(mute_button, 13, 13);
-	WMMoveWidget(mute_button, 17, 46);
+	WMResizeWidget(mute_button, BUTTON_MEASURE, BUTTON_MEASURE);
+	WMMoveWidget(mute_button, MARGIN + BUTTON_MEASURE,
+		     BUTTON_Y + BUTTON_MEASURE);
 	mute_pix = WMCreatePixmapFromXPMData(screen, mute_xpm);
 	WMSetButtonImage(mute_button, mute_pix);
 	WMSetButtonImagePosition(mute_button, WIPImageOnly);
@@ -255,7 +266,7 @@ void update_device(void)
 	WMSetLabelImage(icon_label, get_current_device_icon());
 	WMRedisplayWidget(icon_label);
 
-	image = RCreateImage(23, 53, False);
+	image = RCreateImage(SLIDER_WIDTH - 2, SLIDER_HEIGHT - 2, False);
 	RFillImage(image, &bg);
 
 	for (i = 0; i < get_current_device_volume(); i++) {
@@ -266,7 +277,9 @@ void update_device(void)
 		line_color.green = 255 * (50 - 2 * i) / (50 - i);
 		line_color.blue = 0;
 		line_color.alpha = 255;
-		RDrawLine(image, 1, 50 - 2 * i, 20, 50 - 2 * i, &line_color);
+		RDrawLine(image, 1, SLIDER_HEIGHT - 5 - 2 * i,
+			  SLIDER_WIDTH - 5, SLIDER_HEIGHT - 5 - 2 * i,
+			  &line_color);
 	}
 
 	slider_pix = WMCreatePixmapFromRImage(screen, image, 127);
