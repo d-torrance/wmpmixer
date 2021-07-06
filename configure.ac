@@ -2,7 +2,6 @@ AC_INIT([wmpmixer], [0.1], [dtorrance@piedmont.edu])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_PROG_CC
-PKG_CHECK_MODULES([DOCKAPP], [dockapp])
 PKG_CHECK_MODULES([PULSE], [libpulse])
 PKG_CHECK_MODULES([WRLIB], [wrlib])
 PKG_CHECK_MODULES([X11], [x11])
