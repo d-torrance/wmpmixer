@@ -284,7 +284,7 @@ int volume_to_int(pa_cvolume volume)
 
 	average = pa_cvolume_avg(&volume);
 	result = (25 / (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED)) *
-		(average - PA_VOLUME_MUTED);
+		(average - PA_VOLUME_MUTED) + 0.5;
 
 	if (result < 0)
 		return 0;
@@ -307,7 +307,7 @@ pa_volume_t int_to_volume(int n)
 	pa_volume_t result;
 
 	result = (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED) / 25 * n +
-		PA_VOLUME_MUTED;
+		PA_VOLUME_MUTED + 0.5;
 
 	if (result < PA_VOLUME_MUTED)
 		return PA_VOLUME_MUTED;
