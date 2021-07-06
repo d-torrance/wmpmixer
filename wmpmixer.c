@@ -43,6 +43,7 @@
 
 WMScreen *screen;
 WMLabel *icon_label, *slider_label;
+WMButton *mute_button;
 RColor slider_color[25];
 
 static char * left_xpm[] = {
@@ -136,7 +137,7 @@ void setup_window(WMWindow *window) {
 	XWMHints *hints;
 	WMColor *bg;
 	WMFrame *icon_frame, *slider_frame;
-	WMButton *left_button, *right_button, *record_button, *mute_button;
+	WMButton *left_button, *right_button, *record_button;
 	WMPixmap *left_pix, *right_pix, *record_pix, *mute_pix;
 
 	WMRealizeWidget(window);
@@ -276,6 +277,9 @@ void update_device(void)
 				WMWidgetView(icon_label));
 	WMSetLabelImage(icon_label, get_current_device_icon());
 	WMRedisplayWidget(icon_label);
+
+	WMSetButtonSelected(mute_button, get_current_device_muted());
+	WMRedisplayWidget(mute_button);
 
 	update_slider();
 }

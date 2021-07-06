@@ -309,6 +309,13 @@ int get_current_device_volume(void)
 	return volume_to_int(device->volume);
 }
 
+Bool get_current_device_muted(void)
+{
+	PulseDevice *device;
+
+	device = get_current_device();
+	return device->muted;
+}
 pa_volume_t int_to_volume(int n)
 {
 	pa_volume_t result;
