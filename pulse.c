@@ -90,12 +90,17 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	screen = get_screen();
 
 	if (!icon_name)
-		return WMCreatePixmap(screen, 22, 22, 0, False);
+		goto error;
 
 	theme = gtk_icon_theme_get_default();
-	/* TODO - error handling */
+	if (!theme)
+		goto error;
+
 	icon_info = gtk_icon_theme_lookup_icon(
 		theme, icon_name, 22, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+	if (!icon_info)
+		goto error;
+
 	file = gtk_icon_info_get_filename(icon_info);
 
 	pixmap = WMCreateScaledBlendedPixmapFromFile(screen, file, &bg, 22, 22);
@@ -103,6 +108,10 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	g_object_unref(icon_info);
 
 	return pixmap;
+
+error:
+	wwarning("unable to create icon");
+	return WMCreatePixmap(screen, 22, 22, 0, False);
 }
 
 void setup_pulse(void)
