@@ -75,6 +75,7 @@ void state_cb(pa_context *c, void *userdata);
 pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
 void update_slider_cb(pa_context *ctx, int success, void *userdata);
+void change_current_device_volume_by(int k);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -315,6 +316,32 @@ pa_volume_t int_to_volume(int n)
 		return 1.5 * PA_VOLUME_NORM;
 	else
 		return result;
+}
+
+void increment_current_device_volume(void)
+{
+	change_current_device_volume_by(1);
+}
+
+void decrement_current_device_volume(void)
+{
+	change_current_device_volume_by(-1);
+}
+
+void change_current_device_volume_by(int k)
+{
+	int n;
+	PulseDevice *device;
+
+	device = WMGetFromArray(pulse_devices, current_device);
+	n = volume_to_int(device->volume) + k;
+
+	if (n < 0)
+		n = 0;
+	else if (n > 25)
+		n = 25;
+
+	set_current_device_volume(n);
 }
 
 void set_current_device_volume(int n)

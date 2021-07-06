@@ -26,6 +26,8 @@ const char *get_current_device_description(void);
 WMPixmap *get_current_device_icon(void);
 int get_current_device_volume(void);
 void set_current_device_volume(int n);
+void increment_current_device_volume(void);
+void decrement_current_device_volume(void);
 void increment_current_device(WMWidget *widget, void *data);
 void decrement_current_device(WMWidget *widget, void *data);
 void setup_pulse(void);

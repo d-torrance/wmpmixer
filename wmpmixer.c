@@ -313,9 +313,9 @@ void slider_event(XEvent *event, void *data)
 	    (event->type == MotionNotify && event->xmotion.state & Button1Mask))
 		set_current_device_volume(y_to_bar(event->xbutton.y));
 	else if (event->type == ButtonPress && event->xbutton.button == 4)
-		wmessage("up!");
+		increment_current_device_volume();
 	else if (event->type == ButtonPress && event->xbutton.button == 5)
-		wmessage("down!");
+		decrement_current_device_volume();
 }
 
 int y_to_bar(int y)
