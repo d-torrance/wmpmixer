@@ -24,5 +24,6 @@
 
 WMScreen *get_screen(void);
 void update_device(void);
+void update_slider(void);
 
 #endif

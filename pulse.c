@@ -74,7 +74,7 @@ void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 void state_cb(pa_context *c, void *userdata);
 pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
-void update_device_cb(pa_context *ctx, int success, void *userdata);
+void update_slider_cb(pa_context *ctx, int success, void *userdata);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -335,22 +335,22 @@ void set_current_device_volume(int n)
 	switch (device->type) {
 	case PULSE_SINK:
 		pa_context_set_sink_volume_by_index(
-			ctx, device->index, &volume, update_device_cb, NULL);
+			ctx, device->index, &volume, update_slider_cb, NULL);
 		break;
 
 	case PULSE_SOURCE:
 		pa_context_set_source_volume_by_index(
-			ctx, device->index, &volume, update_device_cb, NULL);
+			ctx, device->index, &volume, update_slider_cb, NULL);
 		break;
 
 	case PULSE_SINK_INPUT:
 		pa_context_set_sink_input_volume(
-			ctx, device->index, &volume, update_device_cb, NULL);
+			ctx, device->index, &volume, update_slider_cb, NULL);
 		break;
 
 	case PULSE_SOURCE_OUTPUT:
 		pa_context_set_source_output_volume(
-			ctx, device->index, &volume, update_device_cb, NULL);
+			ctx, device->index, &volume, update_slider_cb, NULL);
 		break;
 
 	default:
@@ -360,13 +360,13 @@ void set_current_device_volume(int n)
 
 }
 
-void update_device_cb(pa_context *ctx, int success, void *userdata)
+void update_slider_cb(pa_context *ctx, int success, void *userdata)
 {
 	(void)ctx;
 	(void)success;
 	(void)userdata;
 
-	update_device();
+	update_slider();
 }
 
 

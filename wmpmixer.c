@@ -272,16 +272,22 @@ void create_slider_colors(void)
 
 void update_device(void)
 {
+	WMSetBalloonTextForView(get_current_device_description(),
+				WMWidgetView(icon_label));
+	WMSetLabelImage(icon_label, get_current_device_icon());
+	WMRedisplayWidget(icon_label);
+
+	update_slider();
+}
+
+void update_slider(void)
+{
 	int i;
 	RImage *image;
 	WMPixmap *slider_pix;
 
 	RColor bg = {40, 40, 40, 255};
 
-	WMSetBalloonTextForView(get_current_device_description(),
-				WMWidgetView(icon_label));
-	WMSetLabelImage(icon_label, get_current_device_icon());
-	WMRedisplayWidget(icon_label);
 
 	image = RCreateImage(SLIDER_WIDTH - 2, SLIDER_HEIGHT - 2, False);
 	RFillImage(image, &bg);
