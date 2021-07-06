@@ -318,12 +318,12 @@ void slider_event(XEvent *event, void *data)
 	(void)data;
 
 	if (((event->type == ButtonPress || event->type == ButtonRelease)
-	     && event->xbutton.button == 1) ||
+	     && event->xbutton.button == Button1) ||
 	    (event->type == MotionNotify && event->xmotion.state & Button1Mask))
 		set_current_device_volume(y_to_bar(event->xbutton.y));
-	else if (event->type == ButtonPress && event->xbutton.button == 4)
+	else if (event->type == ButtonPress && event->xbutton.button == Button4)
 		increment_current_device_volume();
-	else if (event->type == ButtonPress && event->xbutton.button == 5)
+	else if (event->type == ButtonPress && event->xbutton.button == Button5)
 		decrement_current_device_volume();
 }
 
