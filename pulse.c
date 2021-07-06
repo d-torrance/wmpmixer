@@ -108,7 +108,7 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	return pixmap;
 
 error:
-	wwarning("unable to create icon");
+	werror("unable to get icon");
 	return WMCreatePixmap(screen, 22, 22, 0, False);
 }
 
