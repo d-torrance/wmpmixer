@@ -339,15 +339,18 @@ void set_current_device_volume(int n)
 		break;
 
 	case PULSE_SOURCE:
-
+		pa_context_set_source_volume_by_index(
+			ctx, device->index, &volume, update_device_cb, NULL);
 		break;
 
 	case PULSE_SINK_INPUT:
-
+		pa_context_set_sink_input_volume(
+			ctx, device->index, &volume, update_device_cb, NULL);
 		break;
 
 	case PULSE_SOURCE_OUTPUT:
-
+		pa_context_set_source_output_volume(
+			ctx, device->index, &volume, update_device_cb, NULL);
 		break;
 
 	default:
