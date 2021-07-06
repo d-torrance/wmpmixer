@@ -21,6 +21,7 @@
 #define PULSE_H
 
 #include <WINGs/WINGs.h>
+#include <X11/Xlib.h>
 
 const char *get_current_device_description(void);
 WMPixmap *get_current_device_icon(void);
