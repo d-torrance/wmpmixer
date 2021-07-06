@@ -51,7 +51,7 @@ typedef struct {
 	uint32_t index;
 	const char *description;
 	WMPixmap *icon;
-	int volume;
+	pa_cvolume volume;
 	Bool muted;
 } PulseDevice;
 
@@ -74,9 +74,7 @@ void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 void state_cb(pa_context *c, void *userdata);
 pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
-void set_sink_volume(pa_context *ctx, const pa_sink_info *info, int eol,
-		void *userdata);
-void update_slider_cb(pa_context *ctx, int success, void *userdata);
+void update_device_cb(pa_context *ctx, int success, void *userdata);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -146,7 +144,7 @@ PulseDevice *create_device(pulse_type type, uint32_t index,
 	device->index = index;
 	device->description = wstrdup(description);
 	device->icon = icon_name_to_pixmap(icon_name);
-	device->volume = volume_to_int(volume);
+	device->volume = volume;
 	device->muted = muted;
 
 	return device;
@@ -301,7 +299,7 @@ int get_current_device_volume(void)
 	PulseDevice *device;
 
 	device = WMGetFromArray(pulse_devices, current_device);
-	return device->volume;
+	return volume_to_int(device->volume);
 }
 
 pa_volume_t int_to_volume(int n)
@@ -321,21 +319,23 @@ pa_volume_t int_to_volume(int n)
 
 void set_current_device_volume(int n)
 {
+	int i;
 	PulseDevice *device;
 	pa_cvolume volume;
-	static int k = 0;
-
-	/* need a static copy of n, which would go outside of scope
-	   and we'd get garbage in the callbacks */
-	k = n;
+	pa_volume_t channel_volume;
 
 	device = WMGetFromArray(pulse_devices, current_device);
-	device->volume = n;
+
+	volume.channels = device->volume.channels;
+	channel_volume = int_to_volume(n);
+	for (i = 0; i < volume.channels; i++)
+		volume.values[i] = channel_volume;
+	device->volume = volume;
 
 	switch (device->type) {
 	case PULSE_SINK:
-		pa_context_get_sink_info_by_index(ctx, device->index,
-						  set_sink_volume, &k);
+		pa_context_set_sink_volume_by_index(
+			ctx, device->index, &volume, update_device_cb, NULL);
 		break;
 
 	case PULSE_SOURCE:
@@ -357,26 +357,7 @@ void set_current_device_volume(int n)
 
 }
 
-void set_sink_volume(pa_context *ctx, const pa_sink_info *info, int eol,
-		void *userdata)
-{
-	int i, n;
-	pa_cvolume new_volume;
-
-	if (!info)
-		return;
-
-	n = *(int *)userdata;
-
-	new_volume.channels = info->volume.channels;
-	for (i = 0; i < info->volume.channels; i++)
-		new_volume.values[i] = int_to_volume(n);
-	pa_context_set_sink_volume_by_index(ctx, info->index, &new_volume,
-					    update_slider_cb, NULL);
-
-}
-
-void update_slider_cb(pa_context *ctx, int success, void *userdata)
+void update_device_cb(pa_context *ctx, int success, void *userdata)
 {
 	(void)ctx;
 	(void)success;
