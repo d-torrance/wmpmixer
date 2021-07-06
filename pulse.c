@@ -76,6 +76,7 @@ pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
 void update_slider_cb(pa_context *ctx, int success, void *userdata);
 void change_current_device_volume_by(int k);
+PulseDevice *get_current_device(void);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -261,11 +262,16 @@ void iterate_pulse_mainloop(void *data)
 	pa_mainloop_iterate(ml, 0, NULL);
 }
 
+PulseDevice *get_current_device(void)
+{
+	return WMGetFromArray(pulse_devices, current_device);
+}
+
 const char *get_current_device_description(void)
 {
 	PulseDevice *device;
 
-	device = WMGetFromArray(pulse_devices, current_device);
+	device = get_current_device();
 	return device->description;
 }
 
@@ -299,7 +305,7 @@ int get_current_device_volume(void)
 {
 	PulseDevice *device;
 
-	device = WMGetFromArray(pulse_devices, current_device);
+	device = get_current_device();
 	return volume_to_int(device->volume);
 }
 
@@ -333,7 +339,7 @@ void change_current_device_volume_by(int k)
 	int n;
 	PulseDevice *device;
 
-	device = WMGetFromArray(pulse_devices, current_device);
+	device = get_current_device();
 	n = volume_to_int(device->volume) + k;
 
 	if (n < 0)
@@ -351,7 +357,7 @@ void set_current_device_volume(int n)
 	pa_cvolume volume;
 	pa_volume_t channel_volume;
 
-	device = WMGetFromArray(pulse_devices, current_device);
+	device = get_current_device();
 
 	volume.channels = device->volume.channels;
 	channel_volume = int_to_volume(n);
