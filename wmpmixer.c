@@ -43,6 +43,7 @@
 
 WMScreen *screen;
 WMLabel *icon_label, *slider_label;
+RColor slider_color[25];
 
 static char * left_xpm[] = {
 	"4 7 2 1",
@@ -95,6 +96,7 @@ static char * mute_xpm[] = {
 	". ....++ .",
 	" ........ "};
 
+void create_slider_colors(void);
 void slider_event(XEvent *event, void *data);
 void setup_window(WMWindow *window);
 int y_to_bar(int y);
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
 
 	screen = WMCreateScreen(display, DefaultScreen(display));
 	window = WMCreateWindow(screen, PACKAGE_NAME);
+	create_slider_colors();
 	setup_window(window);
 	setup_pulse();
 
@@ -254,6 +257,19 @@ WMScreen *get_screen(void) {
 	return screen;
 }
 
+void create_slider_colors(void)
+{
+	int i;
+
+	/* based on XHandler::mixColor() from wmmixer */
+	for (i = 0; i < 25; i++) {
+		slider_color[i].red = 255 * i / (50 - i);
+		slider_color[i].green = 255 * (50 - 2 * i) / (50 - i);
+		slider_color[i].blue = 0;
+		slider_color[i].alpha = 255;
+	}
+}
+
 void update_device(void)
 {
 	int i;
@@ -270,18 +286,10 @@ void update_device(void)
 	image = RCreateImage(SLIDER_WIDTH - 2, SLIDER_HEIGHT - 2, False);
 	RFillImage(image, &bg);
 
-	for (i = 0; i < get_current_device_volume(); i++) {
-		/* based on XHandler::mixColor() from wmmixer */
-		RColor line_color;
-
-		line_color.red = 255 * i / (50 - i);
-		line_color.green = 255 * (50 - 2 * i) / (50 - i);
-		line_color.blue = 0;
-		line_color.alpha = 255;
+	for (i = 0; i < get_current_device_volume(); i++)
 		RDrawLine(image, 1, SLIDER_HEIGHT - 5 - 2 * i,
 			  SLIDER_WIDTH - 5, SLIDER_HEIGHT - 5 - 2 * i,
-			  &line_color);
-	}
+			  &slider_color[i]);
 
 	slider_pix = WMCreatePixmapFromRImage(screen, image, 127);
 	WMSetLabelImage(slider_label, slider_pix);
