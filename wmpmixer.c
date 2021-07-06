@@ -97,6 +97,7 @@ static char * mute_xpm[] = {
 
 void slider_event(XEvent *event, void *data);
 void setup_window(WMWindow *window);
+int y_to_bar(int y);
 
 int main(int argc, char **argv)
 {
@@ -296,9 +297,22 @@ void slider_event(XEvent *event, void *data)
 	if (((event->type == ButtonPress || event->type == ButtonRelease)
 	     && event->xbutton.button == 1) ||
 	    (event->type == MotionNotify && event->xmotion.state & Button1Mask))
-		wmessage("y = %d\n", event->xbutton.y);
+		set_current_device_volume(y_to_bar(event->xbutton.y));
 	else if (event->type == ButtonPress && event->xbutton.button == 4)
 		wmessage("up!");
 	else if (event->type == ButtonPress && event->xbutton.button == 5)
 		wmessage("down!");
+}
+
+int y_to_bar(int y)
+{
+	int result;
+
+	result = (SLIDER_HEIGHT - 2 - y) / 2;
+	if (result < 0)
+		return 0;
+	else if (result > 25)
+		return 25;
+	else
+		return result;
 }

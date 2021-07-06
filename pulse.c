@@ -37,6 +37,7 @@
 #include <X11/Xlib.h>
 
 pa_mainloop *ml;
+pa_context *ctx;
 
 typedef enum {
 	PULSE_SINK,
@@ -71,7 +72,11 @@ void sink_input_info_cb(pa_context *ctx, const pa_sink_input_info *info,
 void source_output_info_cb(pa_context *ctx, const pa_source_output_info *info,
 			int eol, void *userdata);
 void state_cb(pa_context *c, void *userdata);
+pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
+void set_sink_volume(pa_context *ctx, const pa_sink_info *info, int eol,
+		void *userdata);
+void update_slider_cb(pa_context *ctx, int success, void *userdata);
 
 WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 	const char *file;
@@ -102,7 +107,6 @@ WMPixmap *icon_name_to_pixmap(const char *icon_name) {
 
 void setup_pulse(void)
 {
-	pa_context *ctx;
 	pa_mainloop_api *mlapi;
 
 	pulse_devices = WMCreateArray(0);
@@ -290,6 +294,88 @@ int get_current_device_volume(void)
 	device = WMGetFromArray(pulse_devices, current_device);
 	return device->volume;
 }
+
+pa_volume_t int_to_volume(int n)
+{
+	pa_volume_t result;
+
+	result = (1.5 * PA_VOLUME_NORM - PA_VOLUME_MUTED) / 25 * n +
+		PA_VOLUME_MUTED;
+
+	if (result < PA_VOLUME_MUTED)
+		return PA_VOLUME_MUTED;
+	else if (result > 1.5 * PA_VOLUME_NORM)
+		return 1.5 * PA_VOLUME_NORM;
+	else
+		return result;
+}
+
+void set_current_device_volume(int n)
+{
+	PulseDevice *device;
+	pa_cvolume volume;
+	static int k = 0;
+
+	/* need a static copy of n, which would go outside of scope
+	   and we'd get garbage in the callbacks */
+	k = n;
+
+	device = WMGetFromArray(pulse_devices, current_device);
+	device->volume = n;
+
+	switch (device->type) {
+	case PULSE_SINK:
+		pa_context_get_sink_info_by_index(ctx, device->index,
+						  set_sink_volume, &k);
+		break;
+
+	case PULSE_SOURCE:
+
+		break;
+
+	case PULSE_SINK_INPUT:
+
+		break;
+
+	case PULSE_SOURCE_OUTPUT:
+
+		break;
+
+	default:
+		wwarning("unknown device type");
+		break;
+	}
+
+}
+
+void set_sink_volume(pa_context *ctx, const pa_sink_info *info, int eol,
+		void *userdata)
+{
+	int i, n;
+	pa_cvolume new_volume;
+
+	if (!info)
+		return;
+
+	n = *(int *)userdata;
+
+	new_volume.channels = info->volume.channels;
+	for (i = 0; i < info->volume.channels; i++)
+		new_volume.values[i] = int_to_volume(n);
+	pa_context_set_sink_volume_by_index(ctx, info->index, &new_volume,
+					    update_slider_cb, NULL);
+
+}
+
+void update_slider_cb(pa_context *ctx, int success, void *userdata)
+{
+	(void)ctx;
+	(void)success;
+	(void)userdata;
+
+	update_device();
+}
+
 
 void increment_current_device(WMWidget *widget, void *data)
 {
