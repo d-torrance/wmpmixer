@@ -27,6 +27,7 @@ WMPixmap *get_current_device_icon(void);
 int get_current_device_volume(void);
 Bool get_current_device_muted(void);
 void set_current_device_volume(int n);
+void toggle_current_device_muted(WMWidget *widget, void *data);
 void increment_current_device_volume(void);
 void decrement_current_device_volume(void);
 void increment_current_device(WMWidget *widget, void *data);

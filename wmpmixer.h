@@ -25,5 +25,6 @@
 WMScreen *get_screen(void);
 void update_device(void);
 void update_slider(void);
+void update_muted(void);
 
 #endif

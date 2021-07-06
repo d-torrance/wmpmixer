@@ -246,6 +246,7 @@ void setup_window(WMWindow *window) {
 	mute_pix = WMCreatePixmapFromXPMData(screen, mute_xpm);
 	WMSetButtonImage(mute_button, mute_pix);
 	WMSetButtonImagePosition(mute_button, WIPImageOnly);
+	WMSetButtonAction(mute_button, toggle_current_device_muted, NULL);
 	WMRealizeWidget(mute_button);
 
 	WMMapWidget(window);
@@ -278,10 +279,14 @@ void update_device(void)
 	WMSetLabelImage(icon_label, get_current_device_icon());
 	WMRedisplayWidget(icon_label);
 
+	update_muted();
+	update_slider();
+}
+
+void update_muted(void)
+{
 	WMSetButtonSelected(mute_button, get_current_device_muted());
 	WMRedisplayWidget(mute_button);
-
-	update_slider();
 }
 
 void update_slider(void)

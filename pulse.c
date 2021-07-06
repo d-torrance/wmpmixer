@@ -75,6 +75,7 @@ void state_cb(pa_context *c, void *userdata);
 pa_volume_t int_to_volume(int n);
 int volume_to_int(pa_cvolume volume);
 void update_slider_cb(pa_context *ctx, int success, void *userdata);
+void update_muted_cb(pa_context *ctx, int success, void *userdata);
 void change_current_device_volume_by(int k);
 PulseDevice *get_current_device(void);
 
@@ -400,6 +401,47 @@ void set_current_device_volume(int n)
 
 }
 
+void toggle_current_device_muted(WMWidget *widget, void *data)
+{
+	PulseDevice *device;
+	Bool muted;
+
+	(void)widget;
+	(void)data;
+
+	device = get_current_device();
+	muted = !device->muted;
+	device->muted = muted;
+
+	switch (device->type) {
+	case PULSE_SINK:
+		pa_context_set_sink_mute_by_index(
+			ctx, device->index, muted, update_muted_cb, NULL);
+		break;
+
+	case PULSE_SOURCE:
+		pa_context_set_source_mute_by_index(
+			ctx, device->index, muted, update_muted_cb, NULL);
+		break;
+
+	case PULSE_SINK_INPUT:
+		pa_context_set_sink_input_mute(
+			ctx, device->index, muted, update_muted_cb, NULL);
+		break;
+
+	case PULSE_SOURCE_OUTPUT:
+		pa_context_set_source_output_mute(
+			ctx, device->index, muted, update_muted_cb, NULL);
+		break;
+
+	default:
+		wwarning("unknown device type");
+		break;
+	}
+
+
+}
+
 void update_slider_cb(pa_context *ctx, int success, void *userdata)
 {
 	(void)ctx;
@@ -409,6 +451,14 @@ void update_slider_cb(pa_context *ctx, int success, void *userdata)
 	update_slider();
 }
 
+void update_muted_cb(pa_context *ctx, int success, void *userdata)
+{
+	(void)ctx;
+	(void)success;
+	(void)userdata;
+
+	update_muted();
+}
 
 void increment_current_device(WMWidget *widget, void *data)
 {
