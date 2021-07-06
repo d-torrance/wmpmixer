@@ -3,7 +3,7 @@ wmpmixer
 
 **wmpmixer** (or "wimpy mixer", as I affectionately call it) is a
 [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/)
-mixer and [Window Maker[(https://www.windowmaker.org/)
+mixer and [Window Maker](https://www.windowmaker.org/)
 [dockapp](https://www.dockapps.net/).
 
 Its look is nearly identical to
