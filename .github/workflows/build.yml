@@ -1,0 +1,20 @@
+name: build
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libpulse-dev libwraster-dev libx11-dev \
+            libxext-dev libgtk-3-dev libwings-dev
+      - name: Build
+        run: |
+          ./autogen.sh
+          ./configure
+          make distcheck
