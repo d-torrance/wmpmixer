@@ -237,6 +237,8 @@ void setup_window(WMWindow *window) {
 	record_pix = WMCreatePixmapFromXPMData(screen, record_xpm);
 	WMSetButtonImage(record_button, record_pix);
 	WMSetButtonImagePosition(record_button, WIPImageOnly);
+	/* TODO - implement recording */
+	WMSetButtonEnabled(record_button, False);
 	WMRealizeWidget(record_button);
 
 	mute_button = WMCreateButton(window, WBTToggle);
